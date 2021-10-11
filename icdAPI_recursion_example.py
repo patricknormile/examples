@@ -77,7 +77,7 @@ def get_contents(uri) :
 
 dfs = []
 t0 = time.time()
-def recurs(uri) : 
+def build_tree(uri) : 
   global dfs
   global t0
   if time.time() - t0 > 1800 :#half hour
@@ -87,11 +87,11 @@ def recurs(uri) :
   dfs.append(df) 
   if ch is not None :
     for c in ch :
-      recurs(c)
+      build_tree(c)
       
 # run and get your tree structure
 #took about 4 hours
-recurs(uri_latest)
+build_tree(uri_latest)
 
 df_all = pd.concat(dfs, axis=1)
 df_all.head()
