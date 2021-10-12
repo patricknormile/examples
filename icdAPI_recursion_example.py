@@ -1,7 +1,8 @@
-import requests, json, time, pandas as pd
+import requests, json, time, keyring, pandas as pd
 # Initial setup
-client_id = ''
-client_secret = ''
+cred = keyring.get_credential('icd_api', None)
+client_id = cred.username
+client_secret = cred.password
 token_endpoint = 'https://icdaccessmanagement.who.int/connect/token'
 scope = 'icdapi_access'
 grant_type = 'client_credentials'
@@ -33,10 +34,8 @@ def update_headers() :
              'API-Version' : 'v2',
              'releaseId' : '2021'}
 
-dc = json.JSONDecoder()
 def get(uri) :
-  r = requests.get(uri, headers=headers, verify=False) #could you just use .json() here?
-  js = dc.decoder(r.text)
+  js = requests.get(uri, headers=headers, verify=False).json() 
   return js
 
 
@@ -49,9 +48,9 @@ uri_latest = get(uri_base)['latestRelease']
 
 def get_contents(uri) :
   g = get(uri)
-  try :
+  if 'child' in g.keys() :
     chs = g['child']
-  except KeyError :
+  else :
     chs = None
   try :
     p = get(g['parent'][0])
@@ -59,11 +58,9 @@ def get_contents(uri) :
       p['code'] = ''
   except KeyError :
     p = {'code':'', 'title':{'@value':''}}
-  try :
-    g['code'] #check if code in g might be faster?
-  except KeyError :
+  if 'code' not in g :
     g['code'] = 'base'
-  
+
   out_dict = {
     'parent_code' : [p['code']],
     'parent_title' : [p['title']['@value']],
